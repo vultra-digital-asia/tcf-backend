@@ -5,7 +5,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"tcfback/internal/db"
 	"tcfback/internal/dto"
-	"tcfback/pkg/utils"
 )
 
 type UserRepository struct {
@@ -28,8 +27,10 @@ func (r *UserRepository) GetAllUser(ctx context.Context) ([]db.User, error) {
 func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserRequest) (*db.User, error) {
 
 	result, err := r.queries.CreateUser(ctx, db.CreateUserParams{
-		Email:    utils.HandleString(req.Email),
-		Password: utils.HandleString(req.Password),
+		//Email:    utils.HandleString(req.Email),
+		//Password: utils.HandleString(req.Password),
+		Email:    req.Email,
+		Password: req.Password,
 	})
 
 	if err != nil {

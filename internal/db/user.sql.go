@@ -7,17 +7,15 @@ package db
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
-insert into users (email, password) VALUES ($1, $2) returning id, email, password, created_at, updated_at, fullname
+insert into users (email, password) VALUES ($1, $2) returning id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Email    pgtype.Text
-	Password pgtype.Text
+	Email    string
+	Password string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -25,17 +23,25 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Email,
+		&i.Username,
 		&i.Password,
+		&i.FullName,
+		&i.Email,
+		&i.Phone,
+		&i.BirthPlace,
+		&i.BirthDate,
+		&i.Address,
+		&i.PositionID,
+		&i.DepartmentID,
+		&i.RoleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Fullname,
 	)
 	return i, err
 }
 
 const getAllUser = `-- name: GetAllUser :many
-select id, email, password, created_at, updated_at, fullname from users
+select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at from users
 `
 
 func (q *Queries) GetAllUser(ctx context.Context) ([]User, error) {
@@ -49,11 +55,19 @@ func (q *Queries) GetAllUser(ctx context.Context) ([]User, error) {
 		var i User
 		if err := rows.Scan(
 			&i.ID,
-			&i.Email,
+			&i.Username,
 			&i.Password,
+			&i.FullName,
+			&i.Email,
+			&i.Phone,
+			&i.BirthPlace,
+			&i.BirthDate,
+			&i.Address,
+			&i.PositionID,
+			&i.DepartmentID,
+			&i.RoleID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Fullname,
 		); err != nil {
 			return nil, err
 		}

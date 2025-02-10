@@ -5,14 +5,127 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ApprovalType string
+
+const (
+	ApprovalTypeIZIN     ApprovalType = "IZIN"
+	ApprovalTypeLEMBUR   ApprovalType = "LEMBUR"
+	ApprovalTypeCUTI     ApprovalType = "CUTI"
+	ApprovalTypeREIMBURS ApprovalType = "REIMBURS"
+)
+
+func (e *ApprovalType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ApprovalType(s)
+	case string:
+		*e = ApprovalType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ApprovalType: %T", src)
+	}
+	return nil
+}
+
+type NullApprovalType struct {
+	ApprovalType ApprovalType
+	Valid        bool // Valid is true if ApprovalType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullApprovalType) Scan(value interface{}) error {
+	if value == nil {
+		ns.ApprovalType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ApprovalType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullApprovalType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ApprovalType), nil
+}
+
+type ApprovalFlow struct {
+	ID           pgtype.UUID
+	OrderNumber  int32
+	IsLastOrder  bool
+	ApprovalID   pgtype.UUID
+	DepartmentID pgtype.UUID
+	FlowsNameID  pgtype.UUID
+	ApprovalType ApprovalType
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
+
+type ApprovalFlowName struct {
+	ID   pgtype.UUID
+	Name pgtype.Text
+}
+
+type CommonRequest struct {
+	ID                pgtype.UUID
+	Status            string
+	CurrentOrder      int32
+	Reply             pgtype.Text
+	Details           string
+	ApprovalFlowsID   pgtype.UUID
+	UserRequestID     pgtype.UUID
+	CurrentApprovalID pgtype.UUID
+	SettleBy          pgtype.UUID
+	DepartmentID      pgtype.UUID
+	StartDate         pgtype.Timestamp
+	EndDate           pgtype.Timestamp
+	StartTime         pgtype.Text
+	EndTime           pgtype.Text
+	Url               pgtype.Text
+	Amount            pgtype.Text
+}
+
+type Department struct {
+	ID   pgtype.UUID
+	Name pgtype.Text
+}
+
+type Permission struct {
+	ID     pgtype.UUID
+	Name   pgtype.Text
+	RoleID pgtype.UUID
+}
+
+type Position struct {
+	ID             pgtype.UUID
+	Name           pgtype.Text
+	HierarchyLevel pgtype.Int4
+}
+
+type Role struct {
+	ID   pgtype.UUID
+	Name pgtype.Text
+}
+
 type User struct {
-	ID        int32
-	Email     pgtype.Text
-	Password  pgtype.Text
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
-	Fullname  pgtype.Text
+	ID           pgtype.UUID
+	Username     string
+	Password     string
+	FullName     string
+	Email        string
+	Phone        string
+	BirthPlace   pgtype.Text
+	BirthDate    pgtype.Timestamp
+	Address      pgtype.Text
+	PositionID   pgtype.UUID
+	DepartmentID pgtype.UUID
+	RoleID       pgtype.UUID
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
 }

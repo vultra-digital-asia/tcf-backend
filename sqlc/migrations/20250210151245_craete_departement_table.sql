@@ -1,9 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE users ADD COLUMN fullname TEXT;
+CREATE TABLE departments (
+    id UUID PRIMARY KEY,
+    name VARCHAR
+);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-ALTER TABLE users DROP COLUMN fullname;
+DROP TABLE departments;
 -- +goose StatementEnd
