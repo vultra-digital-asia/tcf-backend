@@ -24,6 +24,9 @@ func (h *UserHandler) Router(g *echo.Group) {
 
 	user.GET("", h.GetAllUser)
 	user.POST("", h.CreateUser)
+
+	auth := g.Group("/auth")
+	auth.POST("/login", h.LoginUser)
 }
 
 func (h *UserHandler) GetAllUser(c echo.Context) error {
@@ -63,4 +66,26 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 
 	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)
 
+}
+
+func (h *UserHandler) LoginUser(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var req dto.LoginRequest
+
+	if err := c.Bind(&req); err != nil {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid JSON request", map[string]interface{}{"error": "Invalid JSON format"})
+	}
+
+	validationErrors := req.Validate()
+	if validationErrors != nil {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", validationErrors)
+	}
+	result, err := h.repo.Login(ctx, req)
+
+	if err != nil {
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to Create User", echo.Map{})
+	}
+
+	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)
 }

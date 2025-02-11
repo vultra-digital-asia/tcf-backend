@@ -8,6 +8,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -56,33 +57,33 @@ func (ns NullApprovalType) Value() (driver.Value, error) {
 }
 
 type ApprovalFlow struct {
-	ID           pgtype.UUID
+	ID           uuid.UUID
 	OrderNumber  int32
 	IsLastOrder  bool
-	ApprovalID   pgtype.UUID
-	DepartmentID pgtype.UUID
-	FlowsNameID  pgtype.UUID
+	ApprovalID   uuid.UUID
+	DepartmentID uuid.UUID
+	FlowsNameID  uuid.UUID
 	ApprovalType ApprovalType
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 }
 
 type ApprovalFlowName struct {
-	ID   pgtype.UUID
+	ID   uuid.UUID
 	Name pgtype.Text
 }
 
 type CommonRequest struct {
-	ID                pgtype.UUID
+	ID                uuid.UUID
 	Status            string
 	CurrentOrder      int32
 	Reply             pgtype.Text
 	Details           string
-	ApprovalFlowsID   pgtype.UUID
-	UserRequestID     pgtype.UUID
-	CurrentApprovalID pgtype.UUID
-	SettleBy          pgtype.UUID
-	DepartmentID      pgtype.UUID
+	ApprovalFlowsID   uuid.UUID
+	UserRequestID     uuid.UUID
+	CurrentApprovalID uuid.UUID
+	SettleBy          uuid.UUID
+	DepartmentID      uuid.UUID
 	StartDate         pgtype.Timestamp
 	EndDate           pgtype.Timestamp
 	StartTime         pgtype.Text
@@ -93,13 +94,13 @@ type CommonRequest struct {
 }
 
 type Department struct {
-	ID   pgtype.UUID
+	ID   uuid.UUID
 	Name pgtype.Text
 }
 
 type Notification struct {
-	ID               pgtype.UUID
-	UserID           pgtype.UUID
+	ID               uuid.UUID
+	UserID           uuid.UUID
 	NotificationType pgtype.Text
 	Title            pgtype.Text
 	Message          pgtype.Text
@@ -109,24 +110,24 @@ type Notification struct {
 }
 
 type Permission struct {
-	ID     pgtype.UUID
+	ID     uuid.UUID
 	Name   pgtype.Text
-	RoleID pgtype.UUID
+	RoleID uuid.UUID
 }
 
 type Position struct {
-	ID             pgtype.UUID
+	ID             uuid.UUID
 	Name           pgtype.Text
 	HierarchyLevel pgtype.Int4
 }
 
 type Role struct {
-	ID   pgtype.UUID
+	ID   uuid.UUID
 	Name pgtype.Text
 }
 
 type User struct {
-	ID           pgtype.UUID
+	ID           uuid.UUID
 	Username     string
 	Password     string
 	FullName     string
@@ -135,9 +136,9 @@ type User struct {
 	BirthPlace   pgtype.Text
 	BirthDate    pgtype.Timestamp
 	Address      pgtype.Text
-	PositionID   pgtype.UUID
-	DepartmentID pgtype.UUID
-	RoleID       pgtype.UUID
+	PositionID   uuid.UUID
+	DepartmentID uuid.UUID
+	RoleID       uuid.UUID
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 }

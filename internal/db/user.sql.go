@@ -7,19 +7,35 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
-insert into users (email, password) VALUES ($1, $2) returning id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
+insert into users (id, email, password, username, full_name, phone)
+VALUES ($1, $2, $3, $4, $5, $6)
+returning id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
 `
 
 type CreateUserParams struct {
+	ID       uuid.UUID
 	Email    string
 	Password string
+	Username string
+	FullName string
+	Phone    string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Password)
+	row := q.db.QueryRow(ctx, createUser,
+		arg.ID,
+		arg.Email,
+		arg.Password,
+		arg.Username,
+		arg.FullName,
+		arg.Phone,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -41,7 +57,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getAllUser = `-- name: GetAllUser :many
-select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at from users
+select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
+from users
 `
 
 func (q *Queries) GetAllUser(ctx context.Context) ([]User, error) {
@@ -77,4 +94,58 @@ func (q *Queries) GetAllUser(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+select users.id, users.username, users.password, users.full_name, users.email, users.phone, users.birth_place, users.birth_date, users.address, users.position_id, users.department_id, users.role_id, users.created_at, users.updated_at, roles.name as role_name, positions.name as position_name, departments.name as department_name
+from users
+         left join roles on users.role_id = roles.id
+         left join positions on users.position_id = positions.id
+         left join departments on users.department_id = departments.id
+where email = $1
+`
+
+type GetUserByEmailRow struct {
+	ID             uuid.UUID
+	Username       string
+	Password       string
+	FullName       string
+	Email          string
+	Phone          string
+	BirthPlace     pgtype.Text
+	BirthDate      pgtype.Timestamp
+	Address        pgtype.Text
+	PositionID     uuid.UUID
+	DepartmentID   uuid.UUID
+	RoleID         uuid.UUID
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	RoleName       pgtype.Text
+	PositionName   pgtype.Text
+	DepartmentName pgtype.Text
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i GetUserByEmailRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.FullName,
+		&i.Email,
+		&i.Phone,
+		&i.BirthPlace,
+		&i.BirthDate,
+		&i.Address,
+		&i.PositionID,
+		&i.DepartmentID,
+		&i.RoleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RoleName,
+		&i.PositionName,
+		&i.DepartmentName,
+	)
+	return i, err
 }
