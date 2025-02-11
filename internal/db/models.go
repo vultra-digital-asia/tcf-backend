@@ -89,11 +89,23 @@ type CommonRequest struct {
 	EndTime           pgtype.Text
 	Url               pgtype.Text
 	Amount            pgtype.Text
+	RequestNumber     pgtype.Int4
 }
 
 type Department struct {
 	ID   pgtype.UUID
 	Name pgtype.Text
+}
+
+type Notification struct {
+	ID               pgtype.UUID
+	UserID           pgtype.UUID
+	NotificationType pgtype.Text
+	Title            pgtype.Text
+	Message          pgtype.Text
+	Status           pgtype.Text
+	CreatedAt        pgtype.Timestamptz
+	ReadAt           pgtype.Timestamp
 }
 
 type Permission struct {

@@ -16,7 +16,8 @@ CREATE TABLE common_requests (
     start_time VARCHAR,
     end_time VARCHAR,
     url VARCHAR,
-    amount VARCHAR
+    amount VARCHAR,
+    request_number SERIAL UNIQUE
 );
 -- +goose StatementEnd
 
