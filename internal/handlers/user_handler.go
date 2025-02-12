@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"tcfback/internal/dto"
+	"tcfback/internal/middleware"
 	"tcfback/internal/repositories"
 	"tcfback/pkg/utils"
 )
@@ -22,7 +23,11 @@ func (h *UserHandler) Router(g *echo.Group) {
 
 	user := g.Group("/users")
 
-	user.GET("", h.GetAllUser)
+	//example for use on group
+	//user.Use(middleware.AuthMiddleware([]string{"admin"}))
+
+	//example on case by cae
+	user.GET("", h.GetAllUser, middleware.AuthMiddleware(middleware.RoleManager, middleware.RoleAdmin))
 	user.POST("", h.CreateUser)
 
 	auth := g.Group("/auth")
@@ -54,7 +59,6 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	validationErrors := req.Validate()
 	if validationErrors != nil {
 
-		//log.Error().Stack().Interface("errors", validationErrors).Msg("Validation Failed")
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", validationErrors)
 	}
 
@@ -84,7 +88,7 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 	result, err := h.repo.Login(ctx, req)
 
 	if err != nil {
-		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to Create User", echo.Map{})
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to login", err)
 	}
 
 	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)

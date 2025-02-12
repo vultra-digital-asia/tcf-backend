@@ -7,12 +7,15 @@ import (
 )
 
 type CreateUserRequest struct {
-	ID       uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Email    string    `json:"email"`
-	Password string    `json:"password"`
-	Fullname string    `json:"full_name"`
-	Username string    `json:"username"`
-	Phone    string    `json:"phone"`
+	ID           uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
+	Email        string    `json:"email"`
+	Password     string    `json:"password"`
+	Fullname     string    `json:"full_name"`
+	Username     string    `json:"username"`
+	Phone        string    `json:"phone"`
+	RoleId       uuid.UUID `json:"role_id"`
+	DepartmentId uuid.UUID `json:"department_id"`
+	PositionId   uuid.UUID `json:"position_id"`
 }
 
 func (r CreateUserRequest) Validate() map[string]custom_errors.FieldError {
@@ -32,11 +35,13 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (r LoginRequest) Validate() error {
-	return validation.ValidateStruct(&r,
+func (r LoginRequest) Validate() map[string]custom_errors.FieldError {
+	err := validation.ValidateStruct(&r,
 		validation.Field(&r.Email, validation.Required),
 		validation.Field(&r.Password, validation.Required, validation.Length(8, 20)),
 	)
+
+	return custom_errors.MapValidationErrors(err)
 }
 
 type LoginResponse struct {
@@ -50,4 +55,5 @@ type CreateUserResponse struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	Role     string `json:"role"`
 }

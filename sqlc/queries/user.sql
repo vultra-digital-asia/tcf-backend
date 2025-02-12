@@ -3,9 +3,17 @@ select *
 from users;
 
 -- name: CreateUser :one
-insert into users (id, email, password, username, full_name, phone)
-VALUES ($1, $2, $3, $4, $5, $6)
-returning *;
+WITH inserted_user AS (
+    INSERT INTO users (id, email, password, username, full_name, phone, role_id, department_id, position_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING *
+)
+SELECT
+    inserted_user.*,
+    roles.name AS role_name -- Get the role name from roles table
+FROM inserted_user
+         LEFT JOIN roles ON inserted_user.role_id = roles.id;
+
 
 -- name: GetUserByEmail :one
 select users.*, roles.name as role_name, positions.name as position_name, departments.name as department_name

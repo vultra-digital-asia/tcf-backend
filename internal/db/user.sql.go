@@ -13,21 +13,49 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-insert into users (id, email, password, username, full_name, phone)
-VALUES ($1, $2, $3, $4, $5, $6)
-returning id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
+WITH inserted_user AS (
+    INSERT INTO users (id, email, password, username, full_name, phone, role_id, department_id, position_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
+)
+SELECT
+    inserted_user.id, inserted_user.username, inserted_user.password, inserted_user.full_name, inserted_user.email, inserted_user.phone, inserted_user.birth_place, inserted_user.birth_date, inserted_user.address, inserted_user.position_id, inserted_user.department_id, inserted_user.role_id, inserted_user.created_at, inserted_user.updated_at,
+    roles.name AS role_name -- Get the role name from roles table
+FROM inserted_user
+         LEFT JOIN roles ON inserted_user.role_id = roles.id
 `
 
 type CreateUserParams struct {
-	ID       uuid.UUID
-	Email    string
-	Password string
-	Username string
-	FullName string
-	Phone    string
+	ID           uuid.UUID
+	Email        string
+	Password     string
+	Username     string
+	FullName     string
+	Phone        string
+	RoleID       uuid.UUID
+	DepartmentID uuid.UUID
+	PositionID   uuid.UUID
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID           uuid.UUID
+	Username     string
+	Password     string
+	FullName     string
+	Email        string
+	Phone        string
+	BirthPlace   pgtype.Text
+	BirthDate    pgtype.Timestamp
+	Address      pgtype.Text
+	PositionID   uuid.UUID
+	DepartmentID uuid.UUID
+	RoleID       uuid.UUID
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	RoleName     pgtype.Text
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRow(ctx, createUser,
 		arg.ID,
 		arg.Email,
@@ -35,8 +63,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Username,
 		arg.FullName,
 		arg.Phone,
+		arg.RoleID,
+		arg.DepartmentID,
+		arg.PositionID,
 	)
-	var i User
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
@@ -52,6 +83,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.RoleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RoleName,
 	)
 	return i, err
 }

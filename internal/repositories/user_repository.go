@@ -2,13 +2,13 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 	"tcfback/internal/db"
 	"tcfback/internal/dto"
 	services "tcfback/internal/service"
+	"tcfback/pkg/custom_errors"
 )
 
 type UserRepository struct {
@@ -37,12 +37,15 @@ func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserReque
 	}
 
 	result, err := r.queries.CreateUser(ctx, db.CreateUserParams{
-		ID:       uuid.New(),
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Username: req.Username,
-		FullName: req.Fullname,
-		Phone:    req.Phone,
+		ID:           uuid.New(),
+		Email:        req.Email,
+		Password:     string(hashedPassword),
+		Username:     req.Username,
+		FullName:     req.Fullname,
+		Phone:        req.Phone,
+		RoleID:       req.RoleId,
+		DepartmentID: req.DepartmentId,
+		PositionID:   req.PositionId,
 	})
 
 	if err != nil {
@@ -53,29 +56,32 @@ func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserReque
 		ID:       result.ID.String(),
 		Username: result.Username,
 		Email:    result.Email,
+		Role:     result.RoleName.String,
 	}
 
 	return &response, nil
 }
 
-func (r *UserRepository) Login(ctx context.Context, request dto.LoginRequest) (*dto.LoginResponse, error) {
+func (r *UserRepository) Login(ctx context.Context, request dto.LoginRequest) (*dto.LoginResponse, map[string]custom_errors.FieldError) {
 
 	getUser, err := r.queries.GetUserByEmail(ctx, request.Email)
 
 	if err != nil {
-		return nil, errors.New("User not found")
+		return nil, custom_errors.MapValidationErrors(err)
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(getUser.Password), []byte(request.Password)); err != nil {
 		log.Error().Err(err).Msg("invalid password")
-		return nil, errors.New("invalid password")
+		//return nil, errors.New("invalid password")
+		return nil, custom_errors.MapValidationErrors(err)
 	}
 
 	token, err := services.GenerateJWT(getUser.ID.String(), getUser.Username, getUser.Email, getUser.RoleName.String, getUser.PositionName.String, getUser.DepartmentName.String)
 
 	if err != nil {
 		log.Error().Err(err).Msg("failed to generate token")
-		return nil, errors.New("failed to generate token")
+		//return nil, errors.New("failed to generate token")
+		return nil, custom_errors.MapValidationErrors(err)
 	}
 
 	return &dto.LoginResponse{
