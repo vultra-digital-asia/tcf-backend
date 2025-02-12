@@ -1,6 +1,14 @@
 -- name: GetAllUser :many
-select *
-from users;
+SELECT * FROM users
+WHERE
+    (full_name ILIKE '%' || COALESCE(@FullName, '') || '%')
+  AND (username ILIKE '%' || COALESCE(@UserName, '') || '%')
+  AND (email ILIKE '%' || COALESCE(@Email, '') || '%')
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: GetUserById :one
+select * from users us where us.id = $1;
 
 -- name: CreateUser :one
 WITH inserted_user AS (

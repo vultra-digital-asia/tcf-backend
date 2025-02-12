@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"net/http"
+	"strconv"
 	"tcfback/internal/dto"
 	"tcfback/internal/middleware"
 	"tcfback/internal/repositories"
@@ -27,24 +30,65 @@ func (h *UserHandler) Router(g *echo.Group) {
 	//user.Use(middleware.AuthMiddleware([]string{"admin"}))
 
 	//example on case by cae
-	user.GET("", h.GetAllUser, middleware.AuthMiddleware(middleware.RoleManager, middleware.RoleAdmin))
+	user.GET("", h.GetAllUser, middleware.AuthMiddleware(middleware.RoleManager, middleware.RoleAdmin, middleware.RoleUser))
+	user.GET("/:id", h.GetOneUser, middleware.AuthMiddleware(middleware.RoleUser, middleware.RoleAdmin))
 	user.POST("", h.CreateUser)
 
 	auth := g.Group("/auth")
 	auth.POST("/login", h.LoginUser)
 }
-
 func (h *UserHandler) GetAllUser(c echo.Context) error {
-
 	ctx := c.Request().Context()
 
-	result, err := h.repo.GetAllUser(ctx)
+	var req dto.GetAllUserParams
+
+	// Read query parameters manually and convert to int32
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+
+	req.Offset = int32(page)
+	req.Limit = int32(limit)
+	req.FullName = c.QueryParam("full_name")
+	req.UserName = c.QueryParam("user_name")
+	req.Email = c.QueryParam("email")
+
+	// Set default values if not provided
+	if req.Offset <= 0 {
+		req.Offset = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+
+	//log.Info().Msgf("Fetching users with Page: %d, Limit: %d, FullName: %s, UserName: %s, Email: %s",
+	//	req.Offset, req.Limit, req.FullName, req.UserName, req.Email)
+
+	result, err := h.repo.GetAllUser(ctx, req)
 
 	if err != nil {
-		return utils.ErrorResponse(c, http.StatusInternalServerError, "Error get list user", err)
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Error getting list of users", err)
 	}
 
 	return utils.SuccessResponse(c, http.StatusOK, "Get List User", &result)
+}
+
+func (h *UserHandler) GetOneUser(c echo.Context) error {
+	ctx := c.Request().Context()
+	idParam := c.Param("id")
+
+	log.Info().Msgf("Received ID param: %s", idParam)
+
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", map[string]string{"error": "Invalid UUID format"})
+	}
+	log.Info().Msgf("Received ID param: %s", id)
+	user, err := h.repo.GetOneUser(ctx, id)
+	if err != nil {
+		return utils.ErrorResponse(c, http.StatusNotFound, "User not found", err)
+	}
+
+	return utils.SuccessResponse(c, http.StatusOK, "User retrieved successfully", &user)
 }
 
 func (h *UserHandler) CreateUser(c echo.Context) error {

@@ -57,3 +57,23 @@ type CreateUserResponse struct {
 	Email    string `json:"email"`
 	Role     string `json:"role"`
 }
+
+type GetAllUserParams struct {
+	FullName string
+	UserName string
+	Email    string
+	Limit    int32
+	Offset   int32
+}
+
+type GetOneUserResponse struct {
+	ID       string `json:"id"`
+	Fullname string `json:"full_name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+}
+
+type GetOneUserQuery struct {
+	ID string `json:"id"`
+}

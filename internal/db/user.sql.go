@@ -89,12 +89,31 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getAllUser = `-- name: GetAllUser :many
-select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
-from users
+SELECT id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at FROM users
+WHERE
+    (full_name ILIKE '%' || COALESCE($3, '') || '%')
+  AND (username ILIKE '%' || COALESCE($4, '') || '%')
+  AND (email ILIKE '%' || COALESCE($5, '') || '%')
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) GetAllUser(ctx context.Context) ([]User, error) {
-	rows, err := q.db.Query(ctx, getAllUser)
+type GetAllUserParams struct {
+	Limit    int32
+	Offset   int32
+	Fullname pgtype.Text
+	Username pgtype.Text
+	Email    pgtype.Text
+}
+
+func (q *Queries) GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, getAllUser,
+		arg.Limit,
+		arg.Offset,
+		arg.Fullname,
+		arg.Username,
+		arg.Email,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -178,6 +197,32 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.RoleName,
 		&i.PositionName,
 		&i.DepartmentName,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at from users us where us.id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.FullName,
+		&i.Email,
+		&i.Phone,
+		&i.BirthPlace,
+		&i.BirthDate,
+		&i.Address,
+		&i.PositionID,
+		&i.DepartmentID,
+		&i.RoleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

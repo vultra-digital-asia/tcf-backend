@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 	"tcfback/internal/db"
@@ -21,13 +22,29 @@ func NewUserRepository(queries *db.Queries) UserRepository {
 	}
 }
 
-func (r *UserRepository) GetAllUser(ctx context.Context) ([]db.User, error) {
+func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParams) ([]db.User, error) {
+	offset := (req.Offset - 1) * req.Limit
 
-	result, err := r.queries.GetAllUser(ctx)
+	users, err := r.queries.GetAllUser(ctx, db.GetAllUserParams{
+		Fullname: pgtype.Text{String: req.FullName, Valid: req.FullName != ""},
+		Username: pgtype.Text{String: req.UserName, Valid: req.UserName != ""},
+		Email:    pgtype.Text{String: req.Email, Valid: req.Email != ""},
+		Limit:    int32(req.Limit),
+		Offset:   int32(offset),
+	})
 
-	return result, err
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching users")
+		return nil, err
+	}
+
+	return users, nil
 }
 
+func (r *UserRepository) GetOneUser(ctx context.Context, id uuid.UUID) (db.User, error) {
+	result, err := r.queries.GetUserById(ctx, id)
+	return result, err
+}
 func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserRequest) (*dto.CreateUserResponse, error) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
