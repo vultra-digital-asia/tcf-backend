@@ -17,7 +17,8 @@ CREATE TABLE common_requests (
     end_time VARCHAR,
     url VARCHAR,
     amount VARCHAR,
-    request_number SERIAL UNIQUE
+    request_number SERIAL UNIQUE,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 -- +goose StatementEnd
 

@@ -3,7 +3,8 @@
 CREATE TABLE permissions (
     id UUID PRIMARY KEY,
     name VARCHAR,
-    role_id UUID
+    role_id UUID,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 -- +goose StatementEnd
 

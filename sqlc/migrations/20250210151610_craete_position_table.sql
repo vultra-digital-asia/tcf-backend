@@ -2,7 +2,8 @@
 -- +goose StatementBegin
 CREATE TABLE positions (
     id UUID PRIMARY KEY,
-    name VARCHAR
+    name VARCHAR,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 -- +goose StatementEnd
 
