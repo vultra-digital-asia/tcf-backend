@@ -5,6 +5,9 @@
       <functions>
         <function importPath="tcfback" name="ConnectDB" />
       </functions>
+      <methods>
+        <method importPath="tcfback/internal/repositories" receiver="*UserRepository" name="GetOneByEmail" />
+      </methods>
     </inspection_tool>
   </profile>
 </component>

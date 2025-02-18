@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE departments (
     id UUID PRIMARY KEY,
-    name VARCHARZ,
+    name VARCHAR,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 
 );

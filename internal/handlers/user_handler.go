@@ -102,18 +102,26 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 
 	validationErrors := req.Validate()
 	if validationErrors != nil {
-
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", validationErrors)
 	}
 
-	result, err := h.repo.CreateUser(ctx, req)
+	// Check if email already exists
+	getUser, err := h.repo.GetOneByEmail(ctx, req.Email)
+	if getUser.Email != "" {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Email already exists", map[string]interface{}{"error": "Email already exists"})
+	}
 
+	if getUser.Username == req.Username {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
+	}
+
+	// Create user
+	result, err := h.repo.CreateUser(ctx, req)
 	if err != nil {
-		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to Create User", echo.Map{})
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to Create User", map[string]interface{}{"error": "Failed to Create User"})
 	}
 
 	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)
-
 }
 
 func (h *UserHandler) LoginUser(c echo.Context) error {
