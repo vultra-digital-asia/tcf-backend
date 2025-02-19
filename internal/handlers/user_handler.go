@@ -99,7 +99,32 @@ func (h *UserHandler) GetOneUser(c echo.Context) error {
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req dto.CreateUserRequest
+	// Get form values instead of JSON binding
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+	fullName := c.FormValue("full_name")
+	phone := c.FormValue("phone")
+	username := c.FormValue("username")
+	roleId := c.FormValue("role_id")
+	positionId := c.FormValue("position_id")
+	departmentId := c.FormValue("department_id")
+
+	if email == "" || password == "" || fullName == "" || phone == "" || username == "" || roleId == "" || positionId == "" || departmentId == "" {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", map[string]interface{}{"error": "Username and password are required"})
+	}
+
+	//var req dto.CreateUserRequest
+	// Create request object manually
+	req := dto.CreateUserRequest{
+		Email:        email,
+		Password:     password,
+		Fullname:     fullName,
+		Phone:        phone,
+		Username:     username,
+		RoleId:       uuid.MustParse(roleId),
+		PositionId:   uuid.MustParse(positionId),
+		DepartmentId: uuid.MustParse(departmentId),
+	}
 
 	if err := c.Bind(&req); err != nil {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid JSON request", map[string]interface{}{"error": "Invalid JSON format"})
