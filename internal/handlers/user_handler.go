@@ -35,7 +35,12 @@ func (h *UserHandler) Router(g *echo.Group) {
 	user.POST("", h.CreateUser)
 
 	auth := g.Group("/auth")
-	auth.POST("/login", h.LoginUser)
+
+	//use Json
+	//auth.POST("/login", h.LoginUser)
+
+	//use formData
+	auth.POST("/login", h.LoginUserFormData)
 }
 func (h *UserHandler) GetAllUser(c echo.Context) error {
 	ctx := c.Request().Context()
@@ -111,9 +116,11 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Email already exists", map[string]interface{}{"error": "Email already exists"})
 	}
 
-	if getUser.Username == req.Username {
-		return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
-	}
+	// TODO
+	// wrong logic must get use GetOneByUserName
+	//if getUser.Username == req.Username {
+	//	return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
+	//}
 
 	// Create user
 	result, err := h.repo.CreateUser(ctx, req)
@@ -144,4 +151,37 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 	}
 
 	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)
+}
+
+func (h *UserHandler) LoginUserFormData(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	// Get form values instead of JSON binding
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	// Validate input
+	if email == "" || password == "" {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", map[string]string{"error": "Username and password are required"})
+	}
+
+	// Create request object manually
+	req := dto.LoginRequest{
+		Email:    email,
+		Password: password,
+	}
+
+	// Validate using existing validation function
+	validationErrors := req.Validate()
+	if validationErrors != nil {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", validationErrors)
+	}
+
+	// Call the repository to process login
+	result, err := h.repo.Login(ctx, req)
+	if err != nil {
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to login", err)
+	}
+
+	return utils.SuccessResponse(c, http.StatusOK, "Login Successful", result)
 }
