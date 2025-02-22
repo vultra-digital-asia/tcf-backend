@@ -33,9 +33,13 @@ jobs:
 
       - name: Create Env File
         env:
-          PROD_ENV: ${{ secrets.PROD_ENV }}
+          GOOSE_DRIVER: ${{ env.GOOSE_DRIVER }}
+          GOOSE_DBSTRING: ${{ tcfback-dev.GOOSE_DBSTRING }}
+          GOOSE_MIGRATION_DIR: ${{ tcfback-dev.GOOSE_MIGRATION_DIR }}
+          JWT_SECRET: ${{ tcfback-dev.GOOSE_MIGRATION_DIR }}
         run: |
-          echo "$PROD_ENV" > .env
+          echo "$GOOSE_DRIVER" > .env
+          echo "$GOOSE_DBSTRING" > .env
 
       - name: Build the app
         run: go build
