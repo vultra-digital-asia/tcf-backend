@@ -9,7 +9,7 @@ jobs:
   deploy:
     name: Build to Server
     runs-on: self-hosted
-    environment: tcfback-env  # Specify the GitHub environment
+    environment: tcfback-dev  # Specify the GitHub environment
 
     steps:
       - name: Checkout code
