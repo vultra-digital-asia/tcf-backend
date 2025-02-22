@@ -9,7 +9,6 @@ jobs:
   deploy:
     name: Build to Server
     runs-on: self-hosted
-    environment: tcfback-dev  # Specify the GitHub environment
 
     steps:
       - name: Checkout code
@@ -34,11 +33,9 @@ jobs:
 
       - name: Create Env File
         env:
-          GOOSE_DRIVER: ${{ secrets.GOOSE_DRIVER }}  # Access the environment variable
-          GOOSE_MIGRATION_DIR: ${{ env.GOOSE_MIGRATION_DIR }}  # Access the environment variable
+          DEV_ENV: ${{ secrets.DEV_ENV }}
         run: |
-          echo "GOOSE_DRIVER=$GOOSE_DRIVER" > .env
-          echo "GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR" > .env
+          echo "$DEV_ENV" > .env
 
       # - name: Build the app
       #   run: go build
