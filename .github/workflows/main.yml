@@ -38,4 +38,4 @@ jobs:
           echo "$PROD_ENV" > .env
 
       - name: Build the app
-        run: npm build
+        run: go build
