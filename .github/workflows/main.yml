@@ -34,12 +34,8 @@ jobs:
       - name: Create Env File
         env:
           GOOSE_DRIVER: ${{ env.GOOSE_DRIVER }}
-          GOOSE_DBSTRING: ${{ tcfback-dev.GOOSE_DBSTRING }}
-          GOOSE_MIGRATION_DIR: ${{ tcfback-dev.GOOSE_MIGRATION_DIR }}
-          JWT_SECRET: ${{ tcfback-dev.GOOSE_MIGRATION_DIR }}
         run: |
           echo "$GOOSE_DRIVER" > .env
-          echo "$GOOSE_DBSTRING" > .env
 
       - name: Build the app
         run: go build
