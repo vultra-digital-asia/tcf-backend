@@ -28,8 +28,8 @@ jobs:
           which go
           go version
 
-      # - name: Install dependencies
-      #   run: go mod tidy
+      - name: Install dependencies
+        run: go mod tidy
 
       - name: Create Env File
         env:
@@ -37,5 +37,5 @@ jobs:
         run: |
           echo "$DEV_ENV" > .env
 
-      # - name: Build the app
-      #   run: go build
+      - name: Build the app
+        run: go build
