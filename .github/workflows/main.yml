@@ -9,6 +9,7 @@ jobs:
   deploy:
     name: Build to Server
     runs-on: self-hosted
+    environment: tcfback-env  # Specify the GitHub environment
 
     steps:
       - name: Checkout code
@@ -33,9 +34,9 @@ jobs:
 
       - name: Create Env File
         env:
-          GOOSE_DRIVER: ${{ tcfback-env.GOOSE_DRIVER }}
+          GOOSE_DRIVER: ${{ secrets.GOOSE_DRIVER }}  # Access the environment variable
         run: |
-          echo "$GOOSE_DRIVER" > .env
+          echo "GOOSE_DRIVER=$GOOSE_DRIVER" > .env
 
       # - name: Build the app
       #   run: go build
