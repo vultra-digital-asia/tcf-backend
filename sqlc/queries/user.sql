@@ -30,3 +30,8 @@ from users
          left join positions on users.position_id = positions.id
          left join departments on users.department_id = departments.id
 where email = $1;
+
+-- name: GetUserByUserName :one
+select *
+from users
+where username = $1;

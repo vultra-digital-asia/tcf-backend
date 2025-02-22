@@ -4,10 +4,21 @@ import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
+	"sync"
 	"time"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var (
+	jwtSecret     []byte
+	jwtSecretOnce sync.Once
+)
+
+func getJWTSecret() []byte {
+	jwtSecretOnce.Do(func() {
+		jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+	})
+	return jwtSecret
+}
 
 type JWTClaims struct {
 	Id         string `json:"id"`
@@ -34,9 +45,8 @@ func GenerateJWT(id, username, email, role, position, department string) (string
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString(getJWTSecret())
 }
 
 func ValidateToken(tokenString string) (*jwt.Token, error) {
@@ -44,6 +54,6 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return []byte(jwtSecret), nil
+		return getJWTSecret(), nil
 	})
 }

@@ -3,4 +3,4 @@
 [//]: # (goose create <migration name> sql / for create new migration goose)
 [//]: # (sqlc generate / for generate sqlc)
 
-[//]: # (Go Install Goose and SQLC)
+[//]: # (Global Install: Golang, Goose SQLC)

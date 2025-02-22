@@ -16,10 +16,10 @@ const createUser = `-- name: CreateUser :one
 WITH inserted_user AS (
     INSERT INTO users (id, email, password, username, full_name, phone, role_id, department_id, position_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at
+        RETURNING id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, is_deleted, created_at, updated_at
 )
 SELECT
-    inserted_user.id, inserted_user.username, inserted_user.password, inserted_user.full_name, inserted_user.email, inserted_user.phone, inserted_user.birth_place, inserted_user.birth_date, inserted_user.address, inserted_user.position_id, inserted_user.department_id, inserted_user.role_id, inserted_user.created_at, inserted_user.updated_at,
+    inserted_user.id, inserted_user.username, inserted_user.password, inserted_user.full_name, inserted_user.email, inserted_user.phone, inserted_user.birth_place, inserted_user.birth_date, inserted_user.address, inserted_user.position_id, inserted_user.department_id, inserted_user.role_id, inserted_user.is_deleted, inserted_user.created_at, inserted_user.updated_at,
     roles.name AS role_name -- Get the role name from roles table
 FROM inserted_user
          LEFT JOIN roles ON inserted_user.role_id = roles.id
@@ -50,6 +50,7 @@ type CreateUserRow struct {
 	PositionID   uuid.UUID
 	DepartmentID uuid.UUID
 	RoleID       uuid.UUID
+	IsDeleted    bool
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 	RoleName     pgtype.Text
@@ -81,6 +82,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.PositionID,
 		&i.DepartmentID,
 		&i.RoleID,
+		&i.IsDeleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.RoleName,
@@ -89,7 +91,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getAllUser = `-- name: GetAllUser :many
-SELECT id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at FROM users
+SELECT id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, is_deleted, created_at, updated_at FROM users
 WHERE
     (full_name ILIKE '%' || COALESCE($3, '') || '%')
   AND (username ILIKE '%' || COALESCE($4, '') || '%')
@@ -134,6 +136,7 @@ func (q *Queries) GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User,
 			&i.PositionID,
 			&i.DepartmentID,
 			&i.RoleID,
+			&i.IsDeleted,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -148,7 +151,7 @@ func (q *Queries) GetAllUser(ctx context.Context, arg GetAllUserParams) ([]User,
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-select users.id, users.username, users.password, users.full_name, users.email, users.phone, users.birth_place, users.birth_date, users.address, users.position_id, users.department_id, users.role_id, users.created_at, users.updated_at, roles.name as role_name, positions.name as position_name, departments.name as department_name
+select users.id, users.username, users.password, users.full_name, users.email, users.phone, users.birth_place, users.birth_date, users.address, users.position_id, users.department_id, users.role_id, users.is_deleted, users.created_at, users.updated_at, roles.name as role_name, positions.name as position_name, departments.name as department_name
 from users
          left join roles on users.role_id = roles.id
          left join positions on users.position_id = positions.id
@@ -169,6 +172,7 @@ type GetUserByEmailRow struct {
 	PositionID     uuid.UUID
 	DepartmentID   uuid.UUID
 	RoleID         uuid.UUID
+	IsDeleted      bool
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
 	RoleName       pgtype.Text
@@ -192,6 +196,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.PositionID,
 		&i.DepartmentID,
 		&i.RoleID,
+		&i.IsDeleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.RoleName,
@@ -202,7 +207,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 }
 
 const getUserById = `-- name: GetUserById :one
-select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, created_at, updated_at from users us where us.id = $1
+select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, is_deleted, created_at, updated_at from users us where us.id = $1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -221,6 +226,36 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PositionID,
 		&i.DepartmentID,
 		&i.RoleID,
+		&i.IsDeleted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByUserName = `-- name: GetUserByUserName :one
+select id, username, password, full_name, email, phone, birth_place, birth_date, address, position_id, department_id, role_id, is_deleted, created_at, updated_at
+from users
+where username = $1
+`
+
+func (q *Queries) GetUserByUserName(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByUserName, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.FullName,
+		&i.Email,
+		&i.Phone,
+		&i.BirthPlace,
+		&i.BirthDate,
+		&i.Address,
+		&i.PositionID,
+		&i.DepartmentID,
+		&i.RoleID,
+		&i.IsDeleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

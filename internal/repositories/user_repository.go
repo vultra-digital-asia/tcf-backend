@@ -50,6 +50,11 @@ func (r *UserRepository) GetOneByEmail(ctx context.Context, email string) (db.Ge
 	result, err := r.queries.GetUserByEmail(ctx, email)
 	return result, err
 }
+
+func (r *UserRepository) GetOneByUsername(ctx context.Context, username string) (db.User, error) {
+	result, err := r.queries.GetUserByUserName(ctx, username)
+	return result, err
+}
 func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserRequest) (*dto.CreateUserResponse, error) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)

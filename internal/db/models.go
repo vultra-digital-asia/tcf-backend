@@ -64,6 +64,7 @@ type ApprovalFlow struct {
 	DepartmentID uuid.UUID
 	FlowsNameID  uuid.UUID
 	ApprovalType ApprovalType
+	IsDeleted    bool
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 }
@@ -91,11 +92,13 @@ type CommonRequest struct {
 	Url               pgtype.Text
 	Amount            pgtype.Text
 	RequestNumber     pgtype.Int4
+	IsDeleted         bool
 }
 
 type Department struct {
-	ID   uuid.UUID
-	Name pgtype.Text
+	ID        uuid.UUID
+	Name      pgtype.Text
+	IsDeleted bool
 }
 
 type Notification struct {
@@ -105,25 +108,29 @@ type Notification struct {
 	Title            pgtype.Text
 	Message          pgtype.Text
 	Status           pgtype.Text
+	IsDeleted        bool
 	CreatedAt        pgtype.Timestamptz
 	ReadAt           pgtype.Timestamp
 }
 
 type Permission struct {
-	ID     uuid.UUID
-	Name   pgtype.Text
-	RoleID uuid.UUID
+	ID        uuid.UUID
+	Name      pgtype.Text
+	RoleID    uuid.UUID
+	IsDeleted bool
 }
 
 type Position struct {
 	ID             uuid.UUID
 	Name           pgtype.Text
+	IsDeleted      bool
 	HierarchyLevel pgtype.Int4
 }
 
 type Role struct {
-	ID   uuid.UUID
-	Name pgtype.Text
+	ID        uuid.UUID
+	Name      pgtype.Text
+	IsDeleted bool
 }
 
 type User struct {
@@ -139,6 +146,7 @@ type User struct {
 	PositionID   uuid.UUID
 	DepartmentID uuid.UUID
 	RoleID       uuid.UUID
+	IsDeleted    bool
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 }

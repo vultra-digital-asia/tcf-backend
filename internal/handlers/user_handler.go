@@ -136,16 +136,16 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	}
 
 	// Check if email already exists
-	getUser, err := h.repo.GetOneByEmail(ctx, req.Email)
-	if getUser.Email != "" {
+	userEmail, _ := h.repo.GetOneByEmail(ctx, req.Email)
+	if userEmail.Email != "" {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Email already exists", map[string]interface{}{"error": "Email already exists"})
 	}
 
-	// TODO
 	// wrong logic must get use GetOneByUserName
-	//if getUser.Username == req.Username {
-	//	return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
-	//}
+	userName, _ := h.repo.GetOneByUsername(ctx, req.Username)
+	if userName.Username != "" {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
+	}
 
 	// Create user
 	result, err := h.repo.CreateUser(ctx, req)

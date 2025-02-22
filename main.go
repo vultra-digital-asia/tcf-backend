@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
+	"os"
 	"tcfback/internal/db"
 	"tcfback/internal/handlers"
 	"tcfback/internal/repositories"
@@ -18,11 +20,26 @@ type Server struct {
 }
 
 func ConnectDB() (*Server, error) {
+	// Load environment variables from .env file if needed
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: No .env file found, using system environment variables.")
+	}
+
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, "host=aws-0-ap-southeast-1.pooler.supabase.com user=postgres.fpeuaykmjlszvofokbcn dbname=postgres password=n4kb03ank sslmode=require")
+	dbURL := os.Getenv("GOOSE_DBSTRING")
+	if dbURL == "" {
+		return nil, fmt.Errorf("database connection string is not set in environment variables")
+	}
+
+	connConfig, err := pgx.ParseConfig(dbURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse database URL: %w", err)
+	}
+
+	conn, err := pgx.ConnectConfig(ctx, connConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	queries := db.New(conn)
@@ -33,8 +50,6 @@ func ConnectDB() (*Server, error) {
 	}
 
 	return server, nil
-
-	//defer conn.Close(ctx)
 }
 
 func main() {
