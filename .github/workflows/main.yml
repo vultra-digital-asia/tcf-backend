@@ -14,6 +14,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Go
+        run: |
+          export PATH=$PATH:/usr/local/go/bin
+          export GOROOT=/usr/local/go
+          export GOPATH=$HOME/go
+          echo "GOROOT=$GOROOT" >> $GITHUB_ENV
+          echo "GOPATH=$GOPATH" >> $GITHUB_ENV
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
+      - name: Verify Go Installation
+        run: |
+          which go
+          go version
+
       - name: Install dependencies
         run: go mod tidy
 
