@@ -28,14 +28,14 @@ jobs:
           which go
           go version
 
-      - name: Install dependencies
-        run: go mod tidy
+      # - name: Install dependencies
+      #   run: go mod tidy
 
       - name: Create Env File
         env:
-          GOOSE_DRIVER: ${{ env.GOOSE_DRIVER }}
+          GOOSE_DRIVER: ${{ tcfback-env.GOOSE_DRIVER }}
         run: |
           echo "$GOOSE_DRIVER" > .env
 
-      - name: Build the app
-        run: go build
+      # - name: Build the app
+      #   run: go build
