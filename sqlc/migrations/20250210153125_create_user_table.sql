@@ -13,7 +13,7 @@ CREATE TABLE users (
     position_id UUID,
     department_id UUID,
     role_id UUID,
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at timestamp null,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );

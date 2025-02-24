@@ -7,7 +7,7 @@ CREATE TABLE notifications (
     title VARCHAR(50),
     message TEXT,
     status VARCHAR,
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at timestamp null,
     created_at timestamp with time zone default now(),
     read_at timestamp null
 );

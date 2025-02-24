@@ -8,7 +8,7 @@ CREATE TABLE approval_flows (
     department_id UUID,
     flows_name_id UUID,
     approval_type approval_type NOT NULL,
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at timestamp null,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );

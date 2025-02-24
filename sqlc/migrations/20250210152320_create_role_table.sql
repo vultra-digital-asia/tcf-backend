@@ -3,7 +3,7 @@
 CREATE TABLE roles (
     id UUID PRIMARY KEY,
     name VARCHAR,
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE
+    deleted_at timestamp null
 );
 -- +goose StatementEnd
 
