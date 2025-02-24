@@ -3,7 +3,9 @@
 CREATE TABLE roles (
     id UUID PRIMARY KEY,
     name VARCHAR,
-    deleted_at timestamp null
+    deleted_at timestamp null,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
 );
 -- +goose StatementEnd
 

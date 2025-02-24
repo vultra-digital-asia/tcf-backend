@@ -18,7 +18,9 @@ CREATE TABLE common_requests (
     url VARCHAR,
     amount VARCHAR,
     request_number SERIAL UNIQUE,
-    deleted_at timestamp null
+    deleted_at timestamp null,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
 );
 -- +goose StatementEnd
 

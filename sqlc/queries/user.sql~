@@ -24,17 +24,16 @@ FROM inserted_user
 
 -- name: UpdateUser :one
 UPDATE users
-SET email = COALESCE($2, email),
-    password = COALESCE($3, password),
-    username = COALESCE($4, username),
-    full_name = COALESCE($5, full_name),
-    phone = COALESCE($6, phone),
-    role_id = COALESCE($7, role_id),
-    department_id = COALESCE($8, department_id),
-    position_id = COALESCE($9, position_id)
+SET email = $2,
+    password = $3,
+    username = $4,
+    full_name = $5,
+    phone = $6,
+    role_id = $7,
+    department_id = $8,
+    position_id = $9
 WHERE id = $1
 RETURNING *;
-
 
 -- name: GetUserByEmail :one
 select users.*, roles.name as role_name, positions.name as position_name, departments.name as department_name

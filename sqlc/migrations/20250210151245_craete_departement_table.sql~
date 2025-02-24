@@ -3,9 +3,8 @@
 CREATE TABLE departments (
     id UUID PRIMARY KEY,
     name VARCHAR,
-    deleted_at timestamp null,
-    created_at timestamp with time zone default now(),
-    updated_at timestamp with time zone default now()
+    deleted_at timestamp null
+
 );
 
 -- +goose StatementEnd
