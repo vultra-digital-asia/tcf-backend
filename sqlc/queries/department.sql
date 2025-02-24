@@ -10,7 +10,8 @@ select * from departments where id = $1;
 
 -- name: CreateDepartment :one
 INSERT INTO departments (id, name)
-VALUES ($1, $2);
+VALUES ($1, $2)
+RETURNING *;
 
 -- name: UpdateDepartment :one
 UPDATE departments

@@ -10,7 +10,8 @@ select * from positions where id = $1;
 
 -- name: CreatePosition :one
 INSERT INTO positions (id, name)
-VALUES ($1, $2);
+VALUES ($1, $2)
+RETURNING *;
 
 -- name: UpdatePosition :one
 UPDATE positions

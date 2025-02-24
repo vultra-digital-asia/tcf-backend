@@ -6,10 +6,10 @@ INSERT INTO roles (id, name) VALUES
 ('fc3d1018-5abf-4f70-92cd-409c199d021e', 'user');
 
 INSERT INTO positions (id, name, hierarchy_level) VALUES
-('e1c0cff9-67db-41cb-86fa-564be844e936', 'IT', 1);
+('e1c0cff9-67db-41cb-86fa-564be844e936', 'officer', 1);
 
 INSERT INTO departments (id, name) VALUES
-('b3eb5159-3a60-468a-9280-93b1065b203e', 'officer');
+('b3eb5159-3a60-468a-9280-93b1065b203e', 'IT');
 
 -- +goose StatementEnd
 
