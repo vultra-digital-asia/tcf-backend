@@ -81,8 +81,6 @@ func (h *UserHandler) GetOneUser(c echo.Context) error {
 	ctx := c.Request().Context()
 	idParam := c.Param("id")
 
-	log.Info().Msgf("Received ID param: %s", idParam)
-
 	id, err := uuid.Parse(idParam)
 	if err != nil {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", map[string]string{"error": "Invalid UUID format"})
