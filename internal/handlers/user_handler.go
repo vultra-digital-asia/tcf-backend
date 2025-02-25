@@ -32,7 +32,8 @@ func (h *UserHandler) Router(g *echo.Group) {
 	//example on case by cae
 	user.GET("", h.GetAllUser, middleware.AuthMiddleware(middleware.RoleManager, middleware.RoleAdmin, middleware.RoleUser))
 	user.GET("/:id", h.GetOneUser, middleware.AuthMiddleware(middleware.RoleUser, middleware.RoleAdmin))
-	user.POST("", h.CreateUser)
+	user.POST("", h.CreateUser, middleware.AuthMiddleware(middleware.RoleAdmin))
+	user.PATCH("", h.UpdateUser, middleware.AuthMiddleware(middleware.RoleUser, middleware.RoleAdmin))
 
 	auth := g.Group("/auth")
 
@@ -111,7 +112,6 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", map[string]interface{}{"error": "Username and password are required"})
 	}
 
-	//var req dto.CreateUserRequest
 	// Create request object manually
 	req := dto.CreateUserRequest{
 		Email:        email,
@@ -124,9 +124,9 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		DepartmentId: uuid.MustParse(departmentId),
 	}
 
-	if err := c.Bind(&req); err != nil {
-		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid JSON request", map[string]interface{}{"error": "Invalid JSON format"})
-	}
+	//if err := c.Bind(&req); err != nil {
+	//	return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid JSON request", map[string]interface{}{"error": "Invalid JSON format"})
+	//}
 
 	validationErrors := req.Validate()
 	if validationErrors != nil {
@@ -154,6 +154,67 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)
 }
 
+func (h *UserHandler) UpdateUser(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	// Get form values instead of JSON binding
+	id := c.FormValue("id")
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+	fullName := c.FormValue("full_name")
+	phone := c.FormValue("phone")
+	username := c.FormValue("username")
+	roleId := c.FormValue("role_id")
+	positionId := c.FormValue("position_id")
+	departmentId := c.FormValue("department_id")
+
+	if id == "" {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "User Id is required", map[string]interface{}{"error": "User Id is required"})
+	}
+
+	// Check if email already exists
+	userEmail, _ := h.repo.GetOneByEmail(ctx, email)
+	if userEmail.Email != "" && userEmail.ID != uuid.MustParse(id) {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Email already exists", map[string]interface{}{"error": "Email already exists"})
+	}
+
+	// wrong logic must get use GetOneByUserName
+	userName, _ := h.repo.GetOneByUsername(ctx, username)
+	if userName.Username != "" && userName.ID != uuid.MustParse(id) {
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
+	}
+
+	//if email == "" || password == "" || fullName == "" || phone == "" || username == "" || roleId == "" || positionId == "" || departmentId == "" {
+	//	return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", map[string]interface{}{"error": "Username and password are required"})
+	//}
+
+	req := dto.UpdateUserRequest{
+		ID:           uuid.MustParse(id),
+		Email:        utils.ToPtr(email),
+		Password:     utils.ToPtr(password),
+		Fullname:     utils.ToPtr(fullName),
+		Phone:        utils.ToPtr(phone),
+		Username:     utils.ToPtr(username),
+		RoleId:       utils.ToUUIDPtr(roleId),
+		PositionId:   utils.ToUUIDPtr(positionId),
+		DepartmentId: utils.ToUUIDPtr(departmentId),
+	}
+
+	//log.Info().Msgf("Received ID param: %s", req.ID)
+	//
+	//return utils.ErrorResponse(c, http.StatusInternalServerError, "Debug", map[string]interface{}{"error": "Debug"})
+
+	// update user
+	result, err := h.repo.UpdateUser(ctx, req)
+
+	if err != nil {
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to Update User", map[string]interface{}{"error": "Failed to Update User"})
+	}
+
+	return utils.SuccessResponse(c, http.StatusOK, "Success Update User", result)
+
+}
+
 func (h *UserHandler) LoginUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -170,7 +231,7 @@ func (h *UserHandler) LoginUser(c echo.Context) error {
 	result, err := h.repo.Login(ctx, req)
 
 	if err != nil {
-		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to login", err)
+		return utils.ErrorResponse(c, http.StatusInternalServerError, "Wrong username or password", err)
 	}
 
 	return utils.SuccessResponse(c, http.StatusOK, "Success Create User", result)

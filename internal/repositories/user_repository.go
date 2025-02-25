@@ -22,7 +22,7 @@ func NewUserRepository(queries *db.Queries) UserRepository {
 	}
 }
 
-func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParams) ([]db.User, error) {
+func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParams) ([]dto.GetAllUserResponse, error) {
 	offset := (req.Offset - 1) * req.Limit
 
 	users, err := r.queries.GetAllUser(ctx, db.GetAllUserParams{
@@ -38,7 +38,31 @@ func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParam
 		return nil, err
 	}
 
-	return users, nil
+	mappedUsers := make([]dto.GetAllUserResponse, len(users))
+	for i, user := range users {
+		var birthDateStr string
+		if user.BirthDate.Valid {
+			birthDateStr = user.BirthDate.Time.Format("2006-01-02 15:04:05") // Adjust format as needed
+		}
+
+		var birthPlaceStr string
+		if user.BirthPlace.Valid {
+			birthPlaceStr = user.BirthPlace.String
+		}
+
+		mappedUsers[i] = dto.GetAllUserResponse{
+			ID:         user.ID.String(),
+			Fullname:   user.FullName,
+			Username:   user.Username,
+			Email:      user.Email,
+			Phone:      user.Phone,
+			Address:    user.Address.String,
+			BirthDate:  birthDateStr,
+			BirthPlace: birthPlaceStr,
+		}
+	}
+
+	return mappedUsers, nil
 }
 
 func (r *UserRepository) GetOneUser(ctx context.Context, id uuid.UUID) (db.User, error) {
@@ -84,6 +108,44 @@ func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserReque
 		Username: result.Username,
 		Email:    result.Email,
 		Role:     result.RoleName.String,
+	}
+
+	return &response, nil
+}
+
+func (r *UserRepository) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (*dto.UpdateUserResponse, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Error().Err(err).Msg("Error hashing password")
+		return nil, err
+	}
+
+	result, err := r.queries.UpdateUser(ctx, db.UpdateUserParams{
+		ID:           req.ID,
+		Email:        *req.Email,
+		Password:     string(hashedPassword),
+		Username:     *req.Username,
+		FullName:     *req.Fullname,
+		Phone:        *req.Phone,
+		RoleID:       *req.RoleId,
+		DepartmentID: *req.DepartmentId,
+		PositionID:   *req.PositionId,
+	})
+
+	// Log error with detailed message if the query fails
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("Query", "UpdateUser").
+			Str("Email", *req.Email).
+			Msg("Error executing UpdateUser query")
+		return nil, err
+	}
+
+	response := dto.UpdateUserResponse{
+		ID:       result.ID.String(),
+		Username: result.Username,
+		Email:    result.Email,
 	}
 
 	return &response, nil

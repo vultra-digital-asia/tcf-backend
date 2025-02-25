@@ -30,6 +30,18 @@ func (r CreateUserRequest) Validate() map[string]custom_errors.FieldError {
 	return custom_errors.MapValidationErrors(err)
 }
 
+type UpdateUserRequest struct {
+	ID           uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey"`
+	Email        *string    `json:"email,omitempty"`
+	Password     *string    `json:"password,omitempty"`
+	Fullname     *string    `json:"full_name,omitempty"`
+	Username     *string    `json:"username,omitempty"`
+	Phone        *string    `json:"phone,omitempty"`
+	RoleId       *uuid.UUID `json:"role_id,omitempty"`
+	DepartmentId *uuid.UUID `json:"department_id,omitempty"`
+	PositionId   *uuid.UUID `json:"position_id,omitempty"`
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -58,12 +70,29 @@ type CreateUserResponse struct {
 	Role     string `json:"role"`
 }
 
+type UpdateUserResponse struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
 type GetAllUserParams struct {
 	FullName string
 	UserName string
 	Email    string
 	Limit    int32
 	Offset   int32
+}
+
+type GetAllUserResponse struct {
+	ID         string `json:"id"`
+	Fullname   string `json:"full_name"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	Phone      string `json:"phone"`
+	BirthDate  string `json:"birth_date"`
+	BirthPlace string `json:"birth_place"`
+	Address    string `json:"address"`
 }
 
 type GetOneUserResponse struct {
