@@ -200,10 +200,6 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 		DepartmentId: utils.ToUUIDPtr(departmentId),
 	}
 
-	//log.Info().Msgf("Received ID param: %s", req.ID)
-	//
-	//return utils.ErrorResponse(c, http.StatusInternalServerError, "Debug", map[string]interface{}{"error": "Debug"})
-
 	// update user
 	result, err := h.repo.UpdateUser(ctx, req)
 
