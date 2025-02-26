@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
-	"tcfback/internal/dto"
+	"tcfback/internal/dto/user_dto"
 	"tcfback/internal/middleware"
 	"tcfback/internal/repositories"
 	"tcfback/pkg/utils"
@@ -26,9 +26,6 @@ func (h *UserHandler) Router(g *echo.Group) {
 
 	user := g.Group("/users")
 
-	//example for use on group
-	//user.Use(middleware.AuthMiddleware([]string{"admin"}))
-
 	//example on case by cae
 	user.GET("", h.GetAllUser, middleware.AuthMiddleware(middleware.RoleManager, middleware.RoleAdmin, middleware.RoleUser))
 	user.GET("/:id", h.GetOneUser, middleware.AuthMiddleware(middleware.RoleUser, middleware.RoleAdmin))
@@ -46,7 +43,7 @@ func (h *UserHandler) Router(g *echo.Group) {
 func (h *UserHandler) GetAllUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req dto.GetAllUserParams
+	var req user_dto.GetAllUserParams
 
 	// Read query parameters manually and convert to int32
 	page, _ := strconv.Atoi(c.QueryParam("page"))
@@ -84,7 +81,7 @@ func (h *UserHandler) GetOneUser(c echo.Context) error {
 
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user ID", map[string]string{"error": "Invalid UUID format"})
+		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid user_dto ID", map[string]string{"error": "Invalid UUID format"})
 	}
 	log.Info().Msgf("Received ID param: %s", id)
 	user, err := h.repo.GetOneUser(ctx, id)
@@ -113,7 +110,7 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	}
 
 	// Create request object manually
-	req := dto.CreateUserRequest{
+	req := user_dto.CreateUserRequest{
 		Email:        email,
 		Password:     password,
 		Fullname:     fullName,
@@ -145,7 +142,7 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Username already exists", map[string]interface{}{"error": "Username already exists"})
 	}
 
-	// Create user
+	// Create user_dto
 	result, err := h.repo.CreateUser(ctx, req)
 	if err != nil {
 		return utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to Create User", map[string]interface{}{"error": "Failed to Create User"})
@@ -188,7 +185,7 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 	//	return utils.ErrorResponse(c, http.StatusBadRequest, "Validation Failed", map[string]interface{}{"error": "Username and password are required"})
 	//}
 
-	req := dto.UpdateUserRequest{
+	req := user_dto.UpdateUserRequest{
 		ID:           uuid.MustParse(id),
 		Email:        utils.ToPtr(email),
 		Password:     utils.ToPtr(password),
@@ -200,7 +197,7 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 		DepartmentId: utils.ToUUIDPtr(departmentId),
 	}
 
-	// update user
+	// update user_dto
 	result, err := h.repo.UpdateUser(ctx, req)
 
 	if err != nil {
@@ -214,7 +211,7 @@ func (h *UserHandler) UpdateUser(c echo.Context) error {
 func (h *UserHandler) LoginUser(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var req dto.LoginRequest
+	var req user_dto.LoginRequest
 
 	if err := c.Bind(&req); err != nil {
 		return utils.ErrorResponse(c, http.StatusBadRequest, "Invalid JSON request", map[string]interface{}{"error": "Invalid JSON format"})
@@ -246,7 +243,7 @@ func (h *UserHandler) LoginUserFormData(c echo.Context) error {
 	}
 
 	// Create request object manually
-	req := dto.LoginRequest{
+	req := user_dto.LoginRequest{
 		Email:    email,
 		Password: password,
 	}

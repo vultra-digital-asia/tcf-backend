@@ -1,4 +1,4 @@
-package dto
+package user_dto
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"

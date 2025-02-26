@@ -16,7 +16,7 @@ type Role string
 const (
 	RoleAdmin   Role = "admin"
 	RoleManager Role = "manager"
-	RoleUser    Role = "user"
+	RoleUser    Role = "user_dto"
 )
 
 // AuthMiddleware for Echo with Role-Based Access Control
@@ -42,14 +42,14 @@ func AuthMiddleware(allowedRoles ...Role) echo.MiddlewareFunc {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
 			}
 
-			// Store user info in context
+			// Store user_dto info in context
 			claims, ok := token.Claims.(*services.JWTClaims)
 			if !ok {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token claims"})
 			}
 
 			c.Set("username", claims.Username)
-			c.Set("department", claims.Department)
+			c.Set("department_dto", claims.Department)
 			c.Set("position", claims.Position)
 			c.Set("role", claims.Role)
 

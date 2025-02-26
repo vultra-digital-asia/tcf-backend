@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 	"tcfback/internal/db"
-	"tcfback/internal/dto"
+	"tcfback/internal/dto/user_dto"
 	services "tcfback/internal/service"
 	"tcfback/pkg/custom_errors"
 )
@@ -22,7 +22,7 @@ func NewUserRepository(queries *db.Queries) UserRepository {
 	}
 }
 
-func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParams) ([]dto.GetAllUserResponse, error) {
+func (r *UserRepository) GetAllUser(ctx context.Context, req user_dto.GetAllUserParams) ([]user_dto.GetAllUserResponse, error) {
 	offset := (req.Offset - 1) * req.Limit
 
 	users, err := r.queries.GetAllUser(ctx, db.GetAllUserParams{
@@ -38,7 +38,7 @@ func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParam
 		return nil, err
 	}
 
-	mappedUsers := make([]dto.GetAllUserResponse, len(users))
+	mappedUsers := make([]user_dto.GetAllUserResponse, len(users))
 	for i, user := range users {
 		var birthDateStr string
 		if user.BirthDate.Valid {
@@ -50,7 +50,7 @@ func (r *UserRepository) GetAllUser(ctx context.Context, req dto.GetAllUserParam
 			birthPlaceStr = user.BirthPlace.String
 		}
 
-		mappedUsers[i] = dto.GetAllUserResponse{
+		mappedUsers[i] = user_dto.GetAllUserResponse{
 			ID:         user.ID.String(),
 			Fullname:   user.FullName,
 			Username:   user.Username,
@@ -79,7 +79,7 @@ func (r *UserRepository) GetOneByUsername(ctx context.Context, username string) 
 	result, err := r.queries.GetUserByUserName(ctx, username)
 	return result, err
 }
-func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserRequest) (*dto.CreateUserResponse, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, req user_dto.CreateUserRequest) (*user_dto.CreateUserResponse, error) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -103,7 +103,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserReque
 		log.Error().Err(err).Msg("Error Create User")
 		return nil, err
 	}
-	response := dto.CreateUserResponse{
+	response := user_dto.CreateUserResponse{
 		ID:       result.ID.String(),
 		Username: result.Username,
 		Email:    result.Email,
@@ -113,7 +113,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, req dto.CreateUserReque
 	return &response, nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, req dto.UpdateUserRequest) (*dto.UpdateUserResponse, error) {
+func (r *UserRepository) UpdateUser(ctx context.Context, req user_dto.UpdateUserRequest) (*user_dto.UpdateUserResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Error().Err(err).Msg("Error hashing password")
@@ -142,7 +142,7 @@ func (r *UserRepository) UpdateUser(ctx context.Context, req dto.UpdateUserReque
 		return nil, err
 	}
 
-	response := dto.UpdateUserResponse{
+	response := user_dto.UpdateUserResponse{
 		ID:       result.ID.String(),
 		Username: result.Username,
 		Email:    result.Email,
@@ -151,7 +151,7 @@ func (r *UserRepository) UpdateUser(ctx context.Context, req dto.UpdateUserReque
 	return &response, nil
 }
 
-func (r *UserRepository) Login(ctx context.Context, request dto.LoginRequest) (*dto.LoginResponse, map[string]custom_errors.FieldError) {
+func (r *UserRepository) Login(ctx context.Context, request user_dto.LoginRequest) (*user_dto.LoginResponse, map[string]custom_errors.FieldError) {
 
 	getUser, err := r.queries.GetUserByEmail(ctx, request.Email)
 
@@ -173,7 +173,7 @@ func (r *UserRepository) Login(ctx context.Context, request dto.LoginRequest) (*
 		return nil, custom_errors.MapValidationErrors(err)
 	}
 
-	return &dto.LoginResponse{
+	return &user_dto.LoginResponse{
 		ID:          getUser.ID.String(),
 		Username:    getUser.Username,
 		Email:       getUser.Email,

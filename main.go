@@ -73,9 +73,15 @@ func main() {
 
 	api := e.Group("/api")
 
+	//Register repo, handler, router user_dto
 	userRepo := repositories.NewUserRepository(dbServer.Queries)
 	userHandler := handlers.NewUserHandler(&userRepo)
 	userHandler.Router(api)
+
+	//Register repo, handler, router department_dto
+	departmentRepo := repositories.NewDepartmentRepository(dbServer.Queries)
+	departmentHandler := handlers.NewDepartmentHandler(&departmentRepo)
+	departmentHandler.Router(api)
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
