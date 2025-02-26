@@ -7,6 +7,14 @@ WHERE
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
 
+-- name: CountAllUsers :one
+SELECT COUNT(*) AS total_count
+FROM users
+WHERE
+    (full_name ILIKE '%' || COALESCE(@FullName, '') || '%')
+  AND (username ILIKE '%' || COALESCE(@UserName, '') || '%')
+  AND (email ILIKE '%' || COALESCE(@Email, '') || '%');
+
 -- name: GetUserById :one
 select * from users us where us.id = $1;
 
@@ -42,9 +50,9 @@ from users
          left join roles on users.role_id = roles.id
          left join positions on users.position_id = positions.id
          left join departments on users.department_id = departments.id
-where email = $1;
+where email = $1 AND users.deleted_at is null;
 
 -- name: GetUserByUserName :one
 select *
 from users
-where username = $1;
+where username = $1 AND deleted_at is null;

@@ -7,6 +7,7 @@
       </functions>
       <methods>
         <method importPath="tcfback/internal/repositories" receiver="*UserRepository" name="GetOneByEmail" />
+        <method importPath="tcfback/internal/db" receiver="*Queries" name="GetDepartmentById" />
       </methods>
     </inspection_tool>
   </profile>
